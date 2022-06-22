@@ -42,3 +42,14 @@ for i in range(len(bbox0)):
 plt.imshow(img0_clone)
 plt.show()
 
+# change the bounding box coordinates
+Wratio = 800/img0.shape[1]
+Hratio = 800/img0.shape[0]
+ratioLst = [Hratio, Wratio, Hratio, Wratio]
+bbox = []
+for box in bbox0:
+    box = [int(a * b) for a, b in zip(box, ratioLst)]
+    bbox.append(box)
+bbox = np.array(bbox)
+print(bbox)
+
