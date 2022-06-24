@@ -93,3 +93,13 @@ imgTensor = imgTensor.unsqueeze(0)
 out_map = faster_rcnn_fe_extractor(imgTensor)
 print(out_map.size())
 
+#visualize the first 5 channels of the 50*50*512 feature maps
+imgArray = out_map.data.cpu().numpy().squeeze(0)
+fig = plt.figure(figsize=(12, 4))
+figNo = 1
+for i in range(5):
+    fig.add_subplot(1, 5, figNo)
+    plt.imshow(imgArray[i], cmap='gray')
+    figNo +=1
+# plt.show()
+
