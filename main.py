@@ -103,3 +103,36 @@ for i in range(5):
     figNo +=1
 # plt.show()
 
+'''
+Generate 22,500 anchor boxes on each input image
+50x50=2500 anchors, each anchor generate 9 anchor boxes, Total = 50x50x9=22,500
+'''
+
+# x, y intervals to generate anchor box center
+fe_size = (800//16)
+ctr_x = np.arange(16, (fe_size+1) * 16, 16)
+ctr_y = np.arange(16, (fe_size+1) * 16, 16)
+print(len(ctr_x), ctr_x)
+
+# coordinates of the 2500 center points to generate anchor boxes
+index = 0
+ctr = np.zeros((2500, 2))
+for x in range(len(ctr_x)):
+    for y in range(len(ctr_y)):
+        ctr[index, 1] = ctr_x[x] - 8
+        ctr[index, 0] = ctr_y[y] - 8
+        index += 1
+print(ctr.shape)
+
+#display the 2500 anchors
+img_clone = np.copy(img)
+plt.figure(figsize=(9,6))
+for i in range(ctr.shape[0]):
+    cv2.circle(img_clone, (int(ctr[i][0]), int(ctr[i][1])), radius=1, color=(255, 0, 0), thickness=2)
+plt.imshow(img_clone)
+plt.show()
+
+
+
+
+
