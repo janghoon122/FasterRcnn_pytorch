@@ -40,7 +40,12 @@ for i in range(len(bbox0)):
     cv2.rectangle(img0_clone, (bbox0[i][1], bbox0[i][0]), (bbox0[i][3], bbox0[i][2]), color=(0, 255, 0), thickness=3)
     cv2.putText(img0_clone, str(int(labels[i])), (bbox0[i][3], bbox0[i][2]), cv2.FONT_HERSHEY_SIMPLEX, 3, (0,0,255), thickness=3)
 plt.imshow(img0_clone)
-plt.show()
+# plt.show()
+
+'''
+Resize the input images to (h=800, w=800)
+'''
+img = cv2.resize(img0, dsize=(800, 800), interpolation=cv2.INTER_CUBIC)
 
 # change the bounding box coordinates
 Wratio = 800/img0.shape[1]
@@ -78,4 +83,13 @@ for i in fe:
 print(len(req_features)) # 30
 print(out_channels) # 512
 
-# Conver this list into a Sequential module
+# Convert this list into a Sequential module
+faster_rcnn_fe_extractor = nn.Sequential(*req_features)
+
+# input image and feature extractor
+transform = transforms.Compose([transforms.ToTensor()]) # Defining PyTorch Transform
+imgTensor = transform(img).to(device)
+imgTensor = imgTensor.unsqueeze(0)
+out_map = faster_rcnn_fe_extractor(imgTensor)
+print(out_map.size())
+
