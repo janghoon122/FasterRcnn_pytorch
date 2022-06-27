@@ -124,15 +124,46 @@ for x in range(len(ctr_x)):
         index += 1
 print(ctr.shape)
 
-#display the 2500 anchors
+# display the 2500 anchors
 img_clone = np.copy(img)
 plt.figure(figsize=(9,6))
 for i in range(ctr.shape[0]):
     cv2.circle(img_clone, (int(ctr[i][0]), int(ctr[i][1])), radius=1, color=(255, 0, 0), thickness=2)
 plt.imshow(img_clone)
+# plt.show()
+
+# for each of the 2500 achors, generate 9 anchor boxes
+# 2500 * 9 = 22500 anchor boxes
+ratios = [0.5, 1, 2]
+scales = [8, 16, 32]
+sub_sample = 16
+anchor_boxes = np.zeros( ((fe_size * fe_size * 9), 4))
+index = 0
+for c in ctr:
+    ctr_y, ctr_x = c
+    for i in range(len(ratios)):
+        for j in range(len(scales)):
+            h = sub_sample * scales[j] * np.sqrt(ratios[i])
+            w = sub_sample * scales[j] * np.sqrt(1./ ratios[i])
+            anchor_boxes[index, 0] = ctr_y - h / 2.
+            anchor_boxes[index, 1] = ctr_x - w / 2.
+            anchor_boxes[index, 2] = ctr_y + h / 2.
+            anchor_boxes[index, 3] = ctr_x + w / 2.
+            index += 1
+print(anchor_boxes.shape)
+
+# display the 9 anchor boxes of one anchor and the ground truth bbox
+img_clone = np.copy(img)
+for i in range(11025, 11034): #9*1225 = 11025
+    x0 = int(anchor_boxes[i][1])
+    y0 = int(anchor_boxes[i][0])
+    x1 = int(anchor_boxes[i][3])
+    y1 = int(anchor_boxes[i][2])
+    cv2.rectangle(img_clone, (x0, y0), (x1, y1), color=(255, 255, 2550), thickness=3)
+
+for i in range(len(bbox)):
+    cv2.rectangle(img_clone, (bbox[i][1], bbox[i][0]), (bbox[i][3], bbox[i][2]), color=(0, 255, 0), thickness=3) # Draw Rectangle
+
+plt.imshow(img_clone)
 plt.show()
-
-
-
-
 
