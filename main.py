@@ -165,5 +165,22 @@ for i in range(len(bbox)):
     cv2.rectangle(img_clone, (bbox[i][1], bbox[i][0]), (bbox[i][3], bbox[i][2]), color=(0, 255, 0), thickness=3) # Draw Rectangle
 
 plt.imshow(img_clone)
-plt.show()
+# plt.show()
+
+'''
+Valid anchor box & Ground truth bboxes (IoU)
+'''
+
+# ignore cross-boundary anchor boxes
+# valid anchor boxes with (y1, x1) > 0 and (y2, x2) <= 800
+index_inside = np.where(
+    (anchor_boxes[:, 0] >= 0) &
+    (anchor_boxes[:, 1] >= 0) &
+    (anchor_boxes[:, 2] <= 800) &
+    (anchor_boxes[:, 3] <= 800)
+    )[0]
+print(index_inside.shape)
+
+valid_anchor_boxes = anchor_boxes[index_inside]
+print(valid_anchor_boxes.shape)
 
