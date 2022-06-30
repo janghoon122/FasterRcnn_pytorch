@@ -184,3 +184,25 @@ print(index_inside.shape)
 valid_anchor_boxes = anchor_boxes[index_inside]
 print(valid_anchor_boxes.shape)
 
+# Calculate iou of the valid anchor boxes
+# Since we have 8940 anchor boxes and 2 ground truth objects, we should get an array with (8490, 2) as the output.
+ious = np.empty((len(valid_anchor_boxes), 2), dtype=np.float32)
+ious.fill(0)
+for num1, i in enumerate(valid_anchor_boxes):
+    ya1, xa1, ya2, xa2 = i
+    anchor_area = (ya2 - ya1) * (xa2 - xa1)
+    for num2, j in enumerate(bbox):
+        yb1, xb1, yb2, xb2 = j
+        box_area = (yb2 - yb1) * (xb2 - xb1)
+        inter_x1 = max([xb1, xa1])
+        inter_y1 = max([yb1, ya1])
+        inter_x2 = min([xb2, xa2])
+        inter_y2 = min([yb2, ya2])
+        if (inter_x1 < inter_x2) and (inter_y1 < inter_y2):
+            iter_area = (inter_y2 - inter_y1) * (inter_x2 - inter_x1)
+            iou = iter_area / (anchor_area + box_area - iter_area)
+        else:
+            iou = 0.
+        ious[num1, num2] = iou
+print(ious.shape)
+
