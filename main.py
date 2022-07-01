@@ -206,3 +206,19 @@ for num1, i in enumerate(valid_anchor_boxes):
         ious[num1, num2] = iou
 print(ious.shape)
 
+# What anchor box has max iou with the ground truth bbox
+gt_argmax_ious = ious.argmax(axis=0)
+print(gt_argmax_ious)
+
+gt_max_ious = ious[gt_argmax_ious, np.arange(ious.shape[1])]
+print(gt_max_ious)
+
+gt_argmax_ious = np.where(ious == gt_max_ious)[0]
+print(gt_argmax_ious)
+
+# What ground truth bbox is associated with each anchor box
+argmax_ious = ious.argmax(axis=1)
+print(argmax_ious.shape)
+print(argmax_ious)
+max_ious = ious[np.arange(len(index_inside)), argmax_ious]
+print(max_ious)
