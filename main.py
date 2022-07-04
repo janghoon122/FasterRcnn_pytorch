@@ -222,3 +222,26 @@ print(argmax_ious.shape)
 print(argmax_ious)
 max_ious = ious[np.arange(len(index_inside)), argmax_ious]
 print(max_ious)
+
+# Iou 8940 valid anchor boxes, 1: object, 0: background, -1 : ignore
+
+# 8940 valid anchor boxes -1(ignore)
+label = np.empty((len(index_inside), ), dtype=np.int32)
+label.fill(-1)
+print(label.shape)
+
+'''
+Use iou to assign 1 (objects) to two kind of anchors
+a) The anchors with the hightest iou overlap with a ground-truth box
+b) An anchor that has an IoU overlap higher than 0.7 with groud-truth box
+'''
+
+# Assign 0 (background) to an anchor if its IoU ratio is lower than 0.3 for all ground-truth boxes
+pos_iou_threshold = 0.7
+neg_iou_threshold = 0.3
+label[gt_argmax_ious] = 1
+label[max_ious >= pos_iou_threshold] = 1
+label[max_ious < neg_iou_threshold] = 0
+
+
+
