@@ -91,7 +91,7 @@ transform = transforms.Compose([transforms.ToTensor()]) # Defining PyTorch Trans
 imgTensor = transform(img).to(device)
 imgTensor = imgTensor.unsqueeze(0)
 out_map = faster_rcnn_fe_extractor(imgTensor)
-print(out_map.size())
+print(out_map.size()) #[1,512,50,50] >> [batch_size, num of layers, width, height]
 
 #visualize the first 5 channels of the 50*50*512 feature maps
 imgArray = out_map.data.cpu().numpy().squeeze(0)
@@ -122,7 +122,7 @@ for x in range(len(ctr_x)):
         ctr[index, 1] = ctr_x[x] - 8
         ctr[index, 0] = ctr_y[y] - 8
         index += 1
-print(ctr.shape)
+print(ctr.shape) # (2500, 2)
 
 # display the 2500 anchors
 img_clone = np.copy(img)
@@ -132,7 +132,7 @@ for i in range(ctr.shape[0]):
 plt.imshow(img_clone)
 # plt.show()
 
-# for each of the 2500 achors, generate 9 anchor boxes
+# For each of the 2500 achors, generate 9 anchor boxes
 # 2500 * 9 = 22500 anchor boxes
 ratios = [0.5, 1, 2]
 scales = [8, 16, 32]
@@ -150,9 +150,9 @@ for c in ctr:
             anchor_boxes[index, 2] = ctr_y + h / 2.
             anchor_boxes[index, 3] = ctr_x + w / 2.
             index += 1
-print(anchor_boxes.shape)
+print(anchor_boxes.shape) # (22500, 4) (num. of anchor boxes, 4 corner values)
 
-# display the 9 anchor boxes of one anchor and the ground truth bbox
+# Display the 9 anchor boxes of one anchor and the ground truth bbox
 img_clone = np.copy(img)
 for i in range(11025, 11034): #9*1225 = 11025
     x0 = int(anchor_boxes[i][1])
@@ -179,10 +179,10 @@ index_inside = np.where(
     (anchor_boxes[:, 2] <= 800) &
     (anchor_boxes[:, 3] <= 800)
     )[0]
-print(index_inside.shape)
+print(index_inside.shape) # 8940
 
 valid_anchor_boxes = anchor_boxes[index_inside]
-print(valid_anchor_boxes.shape)
+print(valid_anchor_boxes.shape) # (8940, 4)
 
 # Calculate iou of the valid anchor boxes
 # Since we have 8940 anchor boxes and 2 ground truth objects, we should get an array with (8490, 2) as the output.
@@ -204,7 +204,7 @@ for num1, i in enumerate(valid_anchor_boxes):
         else:
             iou = 0.
         ious[num1, num2] = iou
-print(ious.shape)
+print(ious.shape) # (8940,2)
 
 # What anchor box has max iou with the ground truth bbox
 gt_argmax_ious = ious.argmax(axis=0)
@@ -218,17 +218,18 @@ print(gt_argmax_ious)
 
 # What ground truth bbox is associated with each anchor box
 argmax_ious = ious.argmax(axis=1)
-print(argmax_ious.shape)
-print(argmax_ious)
+print(argmax_ious.shape) # 8940
 max_ious = ious[np.arange(len(index_inside)), argmax_ious]
 print(max_ious)
 
-# Iou 8940 valid anchor boxes, 1: object, 0: background, -1 : ignore
+'''
+Iou 8940 valid anchor boxes, 1: object, 0: background, -1 : ignore
+'''
 
 # 8940 valid anchor boxes -1(ignore)
 label = np.empty((len(index_inside), ), dtype=np.int32)
 label.fill(-1)
-print(label.shape)
+print(label.shape) # 8940
 
 '''
 Use iou to assign 1 (objects) to two kind of anchors
@@ -237,11 +238,30 @@ b) An anchor that has an IoU overlap higher than 0.7 with groud-truth box
 '''
 
 # Assign 0 (background) to an anchor if its IoU ratio is lower than 0.3 for all ground-truth boxes
-pos_iou_threshold = 0.7
-neg_iou_threshold = 0.3
+pos_iou_threshold = 0.1
+neg_iou_threshold = 0.05
 label[gt_argmax_ious] = 1
 label[max_ious >= pos_iou_threshold] = 1
 label[max_ious < neg_iou_threshold] = 0
+
+'''
+Mini-batch training 256 valid anchor boxes RPN, 128 positive examples, 128 negative examples (background 0)
+valid anchor boxes mini-batch training -1 (ignore)
+'''
+n_sample = 256
+pos_ratio = 0.5
+n_pos = pos_ratio * n_sample
+
+pos_index = np.where(label == 1)[0]
+if len(pos_index) > n_pos:
+    disable_index = np.random.choice(pos_index, size=(len(pos_index) - n_pos), replace=False)
+    label[disable_index] = -1
+
+n_neg = n_sample * np.sum(label == 1)
+neg_index = np.where(label == 0)[0]
+if len(neg_index) > n_neg:
+    disable_index = np.random.choice(neg_index, size=(len(neg_index) - n_neg), replace = False)
+    label[disable_index] = -1
 
 
 
