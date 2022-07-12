@@ -254,14 +254,34 @@ n_pos = pos_ratio * n_sample
 
 pos_index = np.where(label == 1)[0]
 if len(pos_index) > n_pos:
-    disable_index = np.random.choice(pos_index, size=(len(pos_index) - n_pos), replace=False)
+    disable_index = np.random.choice(pos_index, size=(len(pos_index) - int(n_pos)), replace=False)
     label[disable_index] = -1
 
 n_neg = n_sample * np.sum(label == 1)
 neg_index = np.where(label == 0)[0]
 if len(neg_index) > n_neg:
-    disable_index = np.random.choice(neg_index, size=(len(neg_index) - n_neg), replace = False)
+    disable_index = np.random.choice(neg_index, size=(len(neg_index) - int(n_neg)), replace = False)
     label[disable_index] = -1
 
+'''
+Valid anchor boxes format (y1, x1, y2, x2) 
+loc = (cy-cya/ha), (cx-cxa/wa), log(h/ha), log(w/wa) 
+RPN anchor box ground truth box
+'''
 
+# for each valid anchor box, find the ground-truth object which has max_iou
+max_iou_bbox = bbox[argmax_ious]
+print(max_iou_bbox.shape)
+
+# valid anchor boxes h, w, cx, cy
+height = valid_anchor_boxes[:, 2] - valid_anchor_boxes[:, 0]
+width = valid_anchor_boxes[:, 3] - valid_anchor_boxes[:, 1]
+ctr_y = valid_anchor_boxes[:, 0] + 0.5 * height
+ctr_x = valid_anchor_boxes[:, 1] + 0.5 * width
+
+# valid anchor box max iou bbox h, w, cx, cy
+base_height = max_iou_bbox[:, 2] - max_iou_bbox[:, 0]
+base_width = max_iou_bbox[:, 3] - max_iou_bbox[:, 1]
+base_ctr_y = max_iou_bbox[:, 0] + 0.5 * base_height
+base_ctr_x = max_iou_bbox[:, 1] + 0.5 * base_width
 
