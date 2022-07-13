@@ -132,7 +132,7 @@ for i in range(ctr.shape[0]):
 plt.imshow(img_clone)
 # plt.show()
 
-# For each of the 2500 achors, generate 9 anchor boxes
+# For each of the 2500 anchors, generate 9 anchor boxes
 # 2500 * 9 = 22500 anchor boxes
 ratios = [0.5, 1, 2]
 scales = [8, 16, 32]
@@ -285,3 +285,13 @@ base_width = max_iou_bbox[:, 3] - max_iou_bbox[:, 1]
 base_ctr_y = max_iou_bbox[:, 0] + 0.5 * base_height
 base_ctr_x = max_iou_bbox[:, 1] + 0.5 * base_width
 
+# valid anchor boxes loc = (y-ya/ha), (x-xa/wa), log(h/ha), log(w/wa)
+eps = np.finfo(height.dtype).eps
+height = np.maximum(height, eps)
+width = np.maximum(width, eps)
+dy = (base_ctr_y - ctr_y) / height
+dx = (base_ctr_x - ctr_x) / width
+dh = np.log(base_height / height)
+dw = np.log(base_width / width)
+anchor_locs = np.vstack((dy, dx, dh, dw)).transpose()
+print(anchor_locs.shape) # (8940,4)
