@@ -295,3 +295,17 @@ dh = np.log(base_height / height)
 dw = np.log(base_width / width)
 anchor_locs = np.vstack((dy, dx, dh, dw)).transpose()
 print(anchor_locs.shape) # (8940,4)
+
+'''
+22500 anchor boxes label = -1, locations = 0, 8940 valid anchor boxes locations labels
+'''
+
+anchor_labels = np.empty((len(anchor_boxes), ), dtype=label.dtype)
+anchor_labels.fill(-1)
+anchor_labels[index_inside] = label
+print(anchor_labels.shape)
+
+anchor_locations = np.empty((len(anchor_boxes), ) + anchor_boxes.shape[1:], dtype=anchor_locs.dtype)
+anchor_locations.fill(0)
+anchor_locations[index_inside, :] = anchor_locs
+print(anchor_locations.shape)
