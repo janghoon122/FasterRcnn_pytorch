@@ -91,7 +91,7 @@ transform = transforms.Compose([transforms.ToTensor()]) # Defining PyTorch Trans
 imgTensor = transform(img).to(device)
 imgTensor = imgTensor.unsqueeze(0)
 out_map = faster_rcnn_fe_extractor(imgTensor)
-print(out_map.size()) #[1,512,50,50] >> [batch_size, num of layers, width, height]
+print(out_map.size()) #[1,512,50,50] >> [batch_size, num of layers(channels), width, height]
 
 #visualize the first 5 channels of the 50*50*512 feature maps
 imgArray = out_map.data.cpu().numpy().squeeze(0)
@@ -309,3 +309,43 @@ anchor_locations = np.empty((len(anchor_boxes), ) + anchor_boxes.shape[1:], dtyp
 anchor_locations.fill(0)
 anchor_locations[index_inside, :] = anchor_locs
 print(anchor_locations.shape)
+
+'''
+Features (RPN), 22500 region proposals (ROIs)
+'''
+
+in_channels = 512 # depends on the output feature map. in vgg16 it is equal to 512
+mid_channels = 512
+n_anchor = 9 # Number of anchors at each location
+
+conv1 = nn.Conv2d(in_channels, mid_channels, 3, 1, 1).to(device)
+conv1.weight.data.normal_(0, 0.01)
+conv1.bias.data.zero_()
+
+reg_layer = nn.Conv2d(mid_channels, n_anchor * 4, 1, 1, 0).to(device)
+reg_layer.weight.data.normal_(0, 0.01)
+reg_layer.bias.data.zero_()
+
+cls_layer = nn.Conv2d(mid_channels, n_anchor * 2, 1 ,1, 0).to(device)
+cls_layer.weight.data.normal_(0, 0.01)
+cls_layer.bias.data.zero_()
+
+x = conv1(out_map.to(device)) # out_map = faster_rcnn_fe_extractor(imgTensor)
+pred_anchor_locs = reg_layer(x)
+pred_cls_scores = cls_layer(x)
+print(pred_anchor_locs.shape, pred_cls_scores.shape)
+
+# anchor box format
+# [1, 36(9*4), 50, 50] >> [1, 22500(50*50*9), 4] (dy, dx, dh, dw)
+# [1, 18(9*2), 50, 50] >> [1, 22500, 2] (1, 0)
+pred_anchor_locs = pred_anchor_locs.permute(0, 2, 3, 1).contiguous().view(1, -1, 4)
+print(pred_anchor_locs.shape)
+
+pred_cls_scores = pred_cls_scores.permute(0, 2, 3, 1).contiguous()
+print(pred_cls_scores.shape)
+
+objectness_score = pred_cls_scores.view(1, 50, 50, 0, 2)[:, :, :, :, 1].contiguous().view(1, -1)
+print(objectness_score.shape)
+
+pred_cls_scores = pred_cls_scores.view(1, -1, 2)
+print(pred_cls_scores.shape)
