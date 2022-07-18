@@ -344,8 +344,26 @@ print(pred_anchor_locs.shape)
 pred_cls_scores = pred_cls_scores.permute(0, 2, 3, 1).contiguous()
 print(pred_cls_scores.shape)
 
-objectness_score = pred_cls_scores.view(1, 50, 50, 0, 2)[:, :, :, :, 1].contiguous().view(1, -1)
+objectness_score = pred_cls_scores.view(1, 50, 50, 9, 2)[:, :, :, :, 1].contiguous().view(1, -1)
 print(objectness_score.shape)
 
 pred_cls_scores = pred_cls_scores.view(1, -1, 2)
 print(pred_cls_scores.shape)
+
+'''
+RPN 22500 ROIs, 22500 anchor boxes, RPN loss
+'''
+
+print(pred_anchor_locs.shape)
+print(pred_cls_scores.shape)
+print(anchor_locations.shape)
+print(anchor_labels.shape)
+
+rpn_loc = pred_anchor_locs[0]
+rpn_score = pred_cls_scores[0]
+
+gt_rpn_loc = torch.from_numpy(anchor_locations)
+gt_rpn_score = torch.from_numpy(anchor_labels)
+
+print(rpn_loc.shape, rpn_score.shape, gt_rpn_loc.shape, gt_rpn_score.shape)
+
