@@ -367,3 +367,12 @@ gt_rpn_score = torch.from_numpy(anchor_labels)
 
 print(rpn_loc.shape, rpn_score.shape, gt_rpn_loc.shape, gt_rpn_score.shape)
 
+# For classification we use cross-entropy loss
+rpn_cls_loss = F.cross_entropy(rpn_score, gt_rpn_score.long().to(device), ignore_index=-1)
+print(rpn_cls_loss)
+
+# For Regression we use smooth L1 loss as defined in the Fast RCNN paper
+pos = gt_rpn_score > 0
+mask = pos.unsqueeze(1).expand_as(rpn_loc)
+print(mask.shape)
+
