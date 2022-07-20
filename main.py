@@ -238,8 +238,8 @@ b) An anchor that has an IoU overlap higher than 0.7 with groud-truth box
 '''
 
 # Assign 0 (background) to an anchor if its IoU ratio is lower than 0.3 for all ground-truth boxes
-pos_iou_threshold = 0.1
-neg_iou_threshold = 0.05
+pos_iou_threshold = 0.4
+neg_iou_threshold = 0.1
 label[gt_argmax_ious] = 1
 label[max_ious >= pos_iou_threshold] = 1
 label[max_ious < neg_iou_threshold] = 0
@@ -375,4 +375,16 @@ print(rpn_cls_loss)
 pos = gt_rpn_score > 0
 mask = pos.unsqueeze(1).expand_as(rpn_loc)
 print(mask.shape)
+
+# take those bounding boxes which have positive labels
+mask_loc_preds = rpn_loc[mask].view(-1, 4)
+mask_loc_targets = gt_rpn_loc[mask].view(-1, 4)
+print(mask_loc_preds.shape, mask_loc_targets.shape)
+
+x = torch.abs(mask_loc_targets.cpu() - mask_loc_preds.cpu())
+rpn_loc_loss = ((x < 1).float() * 0.5 * x**2) + ((x >= 1).float() * (x - 0.5))
+print(rpn_loc_loss.sum())
+
+
+
 
