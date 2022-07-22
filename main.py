@@ -385,6 +385,11 @@ x = torch.abs(mask_loc_targets.cpu() - mask_loc_preds.cpu())
 rpn_loc_loss = ((x < 1).float() * 0.5 * x**2) + ((x >= 1).float() * (x - 0.5))
 print(rpn_loc_loss.sum())
 
-
+# Combining both the rpn_cls_loss and rpn_reg_loss
+rpn_lambda = 10.
+N_reg = (gt_rpn_score >0).float().sum()
+rpn_loc_loss = rpn_loc_loss.sum() / N_reg
+rpn_loss = rpn_cls_loss + (rpn_lambda * rpn_loc_loss)
+print(rpn_loss)
 
 
