@@ -392,4 +392,17 @@ rpn_loc_loss = rpn_loc_loss.sum() / N_reg
 rpn_loss = rpn_cls_loss + (rpn_lambda * rpn_loc_loss)
 print(rpn_loss)
 
+'''
+RPN 22500 ROIs Fast RCNN bbox + classifications
+NMS (Non-maximum suppression) 22500 ROI 2000
+'''
+
+nms_thresh = 0.7
+n_train_pre_nms = 12000 # no. of train_pre_NMS
+n_train_post_nms = 2000 # after nms, training Fast R-CNN using 2000 RPN proposals
+n_test_pre_nms = 6000
+n_test_post_nms = 300 # During testing, we evaluate 300 proposals
+min_size = 16
+
+
 
