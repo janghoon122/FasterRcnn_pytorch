@@ -404,5 +404,30 @@ n_test_pre_nms = 6000
 n_test_post_nms = 300 # During testing, we evaluate 300 proposals
 min_size = 16
 
+# The labelled 22500 anchor boxes
+# format converted from [y1, x1, y2, s2] to [ctr_x, ctr_y, h, w]
+anc_height = anchor_boxes[:, 2] - anchor_boxes[:, 0]
+anc_width = anchor_boxes[:, 3] - anchor_boxes[:, 1]
+anc_ctr_y = anchor_boxes[:, 0] + 0.5 * anc_height
+anc_ctr_x = anchor_boxes[:, 1] + 0.5 * anc_width
+print(anc_ctr_x.shape)
 
+# The 22500 anchor boxes location and labels predicted by RPN (convert to numpy)
+# format = (dy, dx, dh, dw)
+pred_anchor_locs_numpy = pred_anchor_locs[0].cpu().data.numpy()
+objectness_score_numpy = objectness_score[0].cpu().data.numpy()
+dy = pred_anchor_locs_numpy[:, 0::4] # anchor box dy
+dx = pred_anchor_locs_numpy[:, 1::4] # dx
+dh = pred_anchor_locs_numpy[:, 2::4] # dh
+dw = pred_anchor_locs_numpy[:, 3::4] # dw
+print(dy.shape)
 
+# ctr_y = dy predicted by RPN * anchor_h + anchor_cy
+# ctr_x similar
+# h = exp(dh predicted by RPN) * anchor_h
+# w similar
+ctr_y = dy * anc_height[:, np.newaxis] + anc_ctr_y[:, np.newaxis]
+ctr_x = dx * anc_width[:, np.newaxis] + anc_ctr_x[:, np.newaxis]
+h = np.exp(dh) * anc_height[:, np.newaxis]
+w = np.exp(dw) * anc_width[:, np.newaxis]
+print(w.shape)
